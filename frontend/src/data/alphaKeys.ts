@@ -57,6 +57,7 @@ export const ALPHA_KEYS = [
   'ALPHA-50-P3E7-W2DK',
 ] as const;
 
+// Storage key for tracking used alpha keys
 const USED_KEYS_STORAGE = 'alpha_used_keys';
 const USER_STORAGE = 'alpha_current_user';
 
@@ -149,10 +150,10 @@ export function incrementUploadCount(): boolean {
   const user = getCurrentUser();
   if (!user) return false;
   
-  if (user.isMaster) return true; // No limit for master
+  if (user.isMaster) return true;
   
   if (user.uploadCount >= user.maxUploads) {
-    return false; // Limit reached
+    return false;
   }
   
   user.uploadCount += 1;
