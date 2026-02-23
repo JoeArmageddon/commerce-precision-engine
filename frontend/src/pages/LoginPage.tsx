@@ -12,7 +12,8 @@ import {
   Check,
   Crown,
   Upload,
-  Infinity as InfinityIcon
+  Infinity as InfinityIcon,
+  HelpCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -316,8 +317,19 @@ export function LoginPage() {
                 )}
               </div>
 
-              {/* API Key Info */}
+              {/* Student Guide */}
               <div className="mt-6 pt-6 border-t border-apple-gray-200 dark:border-apple-gray-800">
+                <button
+                  onClick={() => navigate('/guide')}
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg text-purple-800 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">New? Read the Student Guide 📚</span>
+                </button>
+              </div>
+
+              {/* API Key Info */}
+              <div className="mt-4">
                 <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <Key className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-blue-800 dark:text-blue-200">

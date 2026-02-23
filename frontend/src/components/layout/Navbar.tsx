@@ -11,7 +11,8 @@ import {
   Upload,
   FileText,
   Settings,
-  FlaskConical
+  FlaskConical,
+  HelpCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/auth.store';
@@ -46,6 +47,11 @@ export function Navbar() {
       label: 'Materials', 
       icon: FileText,
       onClick: () => navigate('/study-materials') 
+    },
+    { 
+      label: 'Guide', 
+      icon: HelpCircle,
+      onClick: () => navigate('/guide') 
     },
     { 
       label: 'Settings', 

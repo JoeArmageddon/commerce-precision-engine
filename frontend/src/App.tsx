@@ -14,6 +14,7 @@ import { ApiKeyGuidePage } from '@/pages/ApiKeyGuidePage';
 import { SyllabusPage } from '@/pages/SyllabusPage';
 import { StudyMaterialPage } from '@/pages/StudyMaterialPage';
 import { AlphaStatusPage } from '@/pages/AlphaStatusPage';
+import { StudentGuidePage } from '@/pages/StudentGuidePage';
 
 // Protected route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -159,6 +160,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AlphaStatusPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/guide"
+          element={
+            <ProtectedRoute>
+              <StudentGuidePage />
             </ProtectedRoute>
           }
         />
