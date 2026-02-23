@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  accessCode  String   @unique @map("access_code")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  questions   Question[]
+  documents   Document[]
+  @@map("users")
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique // ACC, ECO, BST
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  chapters    Chapter[]
+  questions   Question[]
+  @@map("subjects")
+}
+
+model Chapter {
+  id           String   @id @default(uuid())
+  subjectId    String   @map("subject_id")
+  name         String
+  displayOrder Int      @default(0) @map("display_order")
+  subject      Subject  @relation(fields: [subjectId], references: [id])
+  questions    Question[]
+  documents    Document[]
+  @@unique([subjectId, name])
+  @@map("chapters")
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  subjectId     String   @map("subject_id")
+  chapterId     String?  @map("chapter_id")
+  questionText  String   @map("question_text") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id])
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+  chapter       Chapter? @relation(fields: [chapterId], references: [id])
+  answer        Answer?
+  @@map("questions")
+}
+
+model Answer {
+  id                String   @id @default(uuid())
+  questionId        String   @unique @map("question_id")
+  layer1Output      Json     @map("layer1_output") // {answer, key_points, referenced_concepts, confidence}
+  layer2Output      Json     @map("layer2_output") // {syllabus_alignment, missing_keywords, irrelevant_points, alignment_score}
+  layer3Output      Json     @map("layer3_output") // {logical_errors, severity}
+  layer4Output      Json     @map("layer4_output") // {predicted_score, max_marks, score_percentage, missing_components}
+  finalAnswer       String   @map("final_answer") @db.Text
+  confidenceScore   Float    @map("confidence_score")
+  referencedConcepts Json   @map("referenced_concepts")
+  retries           Int      @default(0)
+  processingTimeMs  Int?     @map("processing_time_ms")
+  status            String   @default("completed")
+  createdAt         DateTime @default(now()) @map("created_at")
+  question          Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  @@map("answers")
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  subjectId   String   @map("subject_id")
+  chapterId   String?  @map("chapter_id")
+  fileName    String   @map("file_name")
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id])
+  chapter     Chapter? @relation(fields: [chapterId], references: [id])
+  @@map("documents")
+}

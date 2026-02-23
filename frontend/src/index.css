@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-apple-gray-200 dark:border-apple-gray-700;
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply font-sans antialiased text-apple-gray-900 dark:text-white;
+    @apply bg-apple-gray-50 dark:bg-apple-gray-950;
+    @apply transition-colors duration-300;
+  }
+  
+  /* Custom selection color */
+  ::selection {
+    @apply bg-apple-blue/30 dark:bg-apple-blue/40;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card - Light Mode */
+  .glass {
+    @apply bg-white/70 backdrop-blur-apple;
+    @apply border border-white/50;
+    @apply shadow-apple;
+    @apply dark:bg-apple-gray-900/70 dark:border-white/10 dark:shadow-apple-lg;
+  }
+  
+  /* Glassmorphism Card - Strong blur */
+  .glass-strong {
+    @apply bg-white/80 backdrop-blur-apple-lg;
+    @apply border border-white/60;
+    @apply shadow-apple-lg;
+    @apply dark:bg-apple-gray-900/80 dark:border-white/15;
+  }
+  
+  /* Apple Button Style */
+  .btn-apple {
+    @apply inline-flex items-center justify-center;
+    @apply px-6 py-3 rounded-full;
+    @apply bg-apple-blue text-white;
+    @apply font-medium text-sm;
+    @apply shadow-apple hover:shadow-apple-hover;
+    @apply transform transition-all duration-200 ease-apple-bounce;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+    @apply focus:outline-none focus:ring-2 focus:ring-apple-blue/50;
+  }
+  
+  .btn-apple-secondary {
+    @apply btn-apple;
+    @apply bg-apple-gray-100 text-apple-gray-900;
+    @apply dark:bg-apple-gray-800 dark:text-white;
+    @apply hover:bg-apple-gray-200 dark:hover:bg-apple-gray-700;
+  }
+  
+  .btn-apple-ghost {
+    @apply btn-apple;
+    @apply bg-transparent text-apple-gray-900;
+    @apply dark:text-white;
+    @apply shadow-none hover:shadow-none;
+    @apply hover:bg-apple-gray-100 dark:hover:bg-apple-gray-800;
+  }
+  
+  /* Apple Input Style */
+  .input-apple {
+    @apply w-full px-5 py-4 rounded-apple;
+    @apply bg-apple-gray-50 dark:bg-apple-gray-800/50;
+    @apply border border-apple-gray-200 dark:border-apple-gray-700;
+    @apply text-apple-gray-900 dark:text-white;
+    @apply placeholder:text-apple-gray-400;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-apple-blue/50 focus:border-apple-blue;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-apple-blue via-apple-purple to-apple-pink;
+    @apply bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: gradient 4s ease infinite;
+  }
+  
+  /* Floating Gradient Orb */
+  .gradient-orb {
+    @apply absolute rounded-full blur-3xl opacity-40;
+    @apply animate-float;
+  }
+  
+  .gradient-orb-1 {
+    @apply gradient-orb;
+    @apply w-96 h-96 bg-gradient-to-br from-apple-blue to-apple-purple;
+    @apply -top-48 -left-48;
+  }
+  
+  .gradient-orb-2 {
+    @apply gradient-orb;
+    @apply w-80 h-80 bg-gradient-to-br from-apple-pink to-apple-orange;
+    @apply -bottom-32 -right-32;
+    animation-delay: 2s;
+  }
+  
+  .gradient-orb-3 {
+    @apply gradient-orb;
+    @apply w-64 h-64 bg-gradient-to-br from-apple-teal to-apple-green;
+    @apply top-1/2 left-1/3;
+    animation-delay: 4s;
+    animation-duration: 8s;
+  }
+  
+  /* Card Hover Effect */
+  .card-hover {
+    @apply transition-all duration-300 ease-apple;
+    @apply hover:shadow-apple-hover hover:-translate-y-1;
+  }
+  
+  /* Section Divider */
+  .section-divider {
+    @apply w-full h-px;
+    @apply bg-gradient-to-r from-transparent via-apple-gray-300 dark:via-apple-gray-700 to-transparent;
+  }
+  
+  /* Loading Shimmer */
+  .shimmer {
+    @apply relative overflow-hidden;
+    @apply bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    @apply bg-[length:200%_100%];
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Status Badges */
+  .badge-success {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-apple-green/10 text-apple-green;
+    @apply dark:bg-apple-green/20;
+  }
+  
+  .badge-warning {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-apple-orange/10 text-apple-orange;
+    @apply dark:bg-apple-orange/20;
+  }
+  
+  .badge-danger {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+    @apply bg-apple-red/10 text-apple-red;
+    @apply dark:bg-apple-red/20;
+  }
+  
+  /* Navigation Blur */
+  .nav-blur {
+    @apply bg-white/80 backdrop-blur-apple;
+    @apply dark:bg-apple-gray-950/80;
+    @apply border-b border-apple-gray-200/50 dark:border-apple-gray-800/50;
+  }
+}
+
+@layer utilities {
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Hide scrollbar */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Glass reflection effect */
+  .glass-reflection {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glass-reflection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.5s;
+  }
+  
+  .glass-reflection:hover::before {
+    left: 100%;
+  }
+  
+  /* Glow effects */
+  .glow-blue {
+    box-shadow: 0 0 60px rgba(0, 122, 255, 0.4);
+  }
+  
+  .glow-purple {
+    box-shadow: 0 0 60px rgba(175, 82, 222, 0.4);
+  }
+  
+  /* Smooth scroll padding */
+  .scroll-padding {
+    scroll-padding-top: 100px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-apple-gray-300 dark:bg-apple-gray-700;
+  @apply rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-apple-gray-400 dark:bg-apple-gray-600;
+}
+
+/* Animations for page transitions */
+.page-enter {
+  animation: fade-up 0.4s ease-out;
+}
+
+.page-enter-delayed {
+  animation: fade-up 0.4s ease-out 0.1s both;
+}
+
+/* Dark mode transitions */
+.dark-transition {
+  @apply transition-colors duration-300;
+}
