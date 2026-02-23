@@ -19,8 +19,6 @@ import {
   Cpu,
   Database,
   MessageCircle,
-  Zap,
-  Clock,
   Send,
   BrainCircuit,
 } from 'lucide-react';
