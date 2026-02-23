@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Key, Copy, Check, ExternalLink, AlertTriangle, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, Key, Check, ExternalLink, AlertTriangle, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -248,7 +248,7 @@ export function ApiKeyGuidePage() {
           transition={{ delay: 0.5 }}
           className="mt-12 text-center"
         >
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
           </Button>

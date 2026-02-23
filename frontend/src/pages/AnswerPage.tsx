@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, RotateCcw, Copy, Check, AlertCircle, Clock, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Layout } from '@/components/layout/Layout';
@@ -39,8 +39,8 @@ export function AnswerPage() {
   };
 
   const handleCopy = async () => {
-    if (question?.answer?.finalAnswer) {
-      await navigator.clipboard.writeText(question.answer.finalAnswer);
+    if (question?.answer?.final_answer) {
+      await navigator.clipboard.writeText(question.answer.final_answer);
       setCopied(true);
       toast.success('Copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
@@ -214,14 +214,14 @@ export function AnswerPage() {
                     <div>
                       <h3 className="font-semibold text-apple-red mb-1">Answer Generation Failed</h3>
                       <p className="text-apple-gray-600 dark:text-apple-gray-400">
-                        {answer.finalAnswer}
+                        {answer.final_answer}
                       </p>
                     </div>
                   </div>
                 </motion.div>
               ) : (
                 <div className="prose prose-gray dark:prose-invert max-w-none">
-                  {answer.finalAnswer.split('\n').map((paragraph, i) => (
+                  {answer.final_answer.split('\n').map((paragraph: string, i: number) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, y: 10 }}

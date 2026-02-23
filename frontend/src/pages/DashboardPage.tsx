@@ -169,7 +169,7 @@ export function DashboardPage() {
                 color: 'from-orange-500 to-red-500',
                 onClick: () => navigate('/settings')
               },
-            ].map((action, index) => (
+            ].map((action) => (
               <motion.button
                 key={action.label}
                 onClick={action.onClick}
