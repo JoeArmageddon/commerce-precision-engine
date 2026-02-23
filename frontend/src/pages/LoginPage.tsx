@@ -25,7 +25,6 @@ import {
   validateAndUseAlphaKey, 
   getRemainingKeysCount,
   ALPHA_KEYS,
-  MASTER_KEY,
   MAX_UPLOADS_REGULAR,
   isMasterKey
 } from '@/data/alphaKeys';
@@ -285,14 +284,8 @@ export function LoginPage() {
                     className="mt-4 p-4 bg-apple-gray-50 dark:bg-apple-gray-800/50 rounded-lg"
                   >
                     <p className="text-xs text-apple-gray-500 mb-3">
-                      First come, first served. Master key for unlimited access:
+                      First come, first served. Copy any unused key:
                     </p>
-                    
-                    {/* Master Key */}
-                    <div className="mb-3 p-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded text-xs font-mono flex items-center justify-between">
-                      <span className="font-bold text-amber-800 dark:text-amber-200">{MASTER_KEY}</span>
-                      <span className="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded">MASTER</span>
-                    </div>
                     
                     <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto">
                       {ALPHA_KEYS.map((key) => (
