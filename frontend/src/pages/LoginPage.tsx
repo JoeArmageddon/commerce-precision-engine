@@ -9,7 +9,10 @@ import {
   FlaskConical, 
   Key, 
   Users,
-  Check
+  Check,
+  Crown,
+  Upload,
+  Infinity
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -20,7 +23,10 @@ import { Card } from '@/components/ui/Card';
 import { 
   validateAndUseAlphaKey, 
   getRemainingKeysCount,
-  ALPHA_KEYS 
+  ALPHA_KEYS,
+  MASTER_KEY,
+  MAX_UPLOADS_REGULAR,
+  isMasterKey
 } from '@/data/alphaKeys';
 
 export function LoginPage() {
@@ -66,15 +72,22 @@ export function LoginPage() {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Create user
+    // Create mock user
     const mockUser = {
       id: userId,
       access_code: accessCode.trim().toUpperCase(),
       created_at: new Date().toISOString(),
+      isMaster: validation.isMaster,
     };
     
     setAuth('demo-token-12345', mockUser);
-    toast.success(`Welcome to Alpha! 🧪 (${getRemainingKeysCount()} spots remaining)`);
+    
+    if (validation.isMaster) {
+      toast.success('Welcome Master! 👑 Unlimited access granted');
+    } else {
+      toast.success(`Welcome! ${getRemainingKeysCount()} spots remaining`);
+    }
+    
     navigate('/dashboard');
     setIsLoading(false);
   };
@@ -85,7 +98,8 @@ export function LoginPage() {
     { icon: Zap, label: 'Study Material RAG' },
   ];
 
-
+  const inputValue = accessCode.trim().toUpperCase();
+  const isMasterInput = isMasterKey(inputValue) && inputValue.length > 0;
 
   return (
     <div className="min-h-screen bg-apple-gray-50 dark:bg-apple-gray-950 flex items-center justify-center p-4 relative overflow-hidden">
@@ -155,37 +169,72 @@ export function LoginPage() {
                 <div className="flex items-start gap-2">
                   <FlaskConical className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-purple-800 dark:text-purple-200">
-                    <span className="font-semibold">Limited Alpha Access:</span> Only 50 spots available. Each key works once.
+                    <span className="font-semibold">Limited Alpha Access:</span> Only 50 spots. Each key works once.
                   </div>
                 </div>
               </div>
 
+              {/* Master Key Notice */}
+              {isMasterInput && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-6 p-4 bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/40 border-2 border-amber-400 dark:border-amber-600 rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <Crown className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                    <div>
+                      <h3 className="font-bold text-amber-900 dark:text-amber-200 text-sm">
+                        Master Key Detected! 👑
+                      </h3>
+                      <p className="text-xs text-amber-800 dark:text-amber-300">
+                        Unlimited uploads • No restrictions • Full access
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Remaining Spots Counter */}
-              <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    <span className="text-sm font-medium text-amber-900 dark:text-amber-200">
-                      Spots Remaining
-                    </span>
+              {!isMasterInput && (
+                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <span className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                        Spots Remaining
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-2xl font-bold ${
+                        remainingKeys > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {remainingKeys}
+                      </span>
+                      <span className="text-sm text-amber-600 dark:text-amber-400">/ 50</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-2xl font-bold ${
-                      remainingKeys > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {remainingKeys}
-                    </span>
-                    <span className="text-sm text-amber-600 dark:text-amber-400">/ 50</span>
+                  {/* Progress Bar */}
+                  <div className="mt-3 h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
+                      style={{ width: `${(remainingKeys / 50) * 100}%` }}
+                    />
                   </div>
                 </div>
-                {/* Progress Bar */}
-                <div className="mt-3 h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
-                    style={{ width: `${(remainingKeys / 50) * 100}%` }}
-                  />
+              )}
+
+              {/* Upload Limits Info */}
+              {!isMasterInput && (
+                <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-xs">
+                    <Upload className="w-4 h-4 flex-shrink-0" />
+                    <span>Regular users: <strong>{MAX_UPLOADS_REGULAR} materials max</strong></span>
+                    <Infinity className="w-4 h-4 ml-auto text-amber-500" />
+                    <span className="text-amber-600">Master: Unlimited</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -212,9 +261,9 @@ export function LoginPage() {
                   className="w-full"
                   isLoading={isLoading}
                   shimmer={!isLoading}
-                  disabled={remainingKeys === 0}
+                  disabled={remainingKeys === 0 && !isMasterInput}
                 >
-                  {isLoading ? 'Verifying...' : remainingKeys === 0 ? 'Alpha Full' : 'Access Alpha'}
+                  {isLoading ? 'Verifying...' : isMasterInput ? 'Access as Master 👑' : remainingKeys === 0 ? 'Alpha Full' : 'Access Alpha'}
                 </Button>
               </form>
 
@@ -225,7 +274,7 @@ export function LoginPage() {
                   className="text-sm text-apple-blue hover:underline flex items-center gap-1 mx-auto"
                 >
                   <Key className="w-4 h-4" />
-                  {showKeysList ? 'Hide Example Keys' : 'Show Available Keys'}
+                  {showKeysList ? 'Hide Keys' : 'Show Available Keys'}
                 </button>
                 
                 {showKeysList && (
@@ -235,31 +284,33 @@ export function LoginPage() {
                     className="mt-4 p-4 bg-apple-gray-50 dark:bg-apple-gray-800/50 rounded-lg"
                   >
                     <p className="text-xs text-apple-gray-500 mb-3">
-                      Copy any unused key below (first come, first served):
+                      First come, first served. Master key for unlimited access:
                     </p>
-                    <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-                      {ALPHA_KEYS.map((key) => {
-                        const isUsed = remainingKeys < 50 && !showKeysList; // Simplified check
-                        return (
-                          <div
-                            key={key}
-                            className="flex items-center justify-between p-2 bg-white dark:bg-apple-gray-800 rounded text-xs font-mono"
+                    
+                    {/* Master Key */}
+                    <div className="mb-3 p-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded text-xs font-mono flex items-center justify-between">
+                      <span className="font-bold text-amber-800 dark:text-amber-200">{MASTER_KEY}</span>
+                      <span className="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded">MASTER</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto">
+                      {ALPHA_KEYS.map((key) => (
+                        <div
+                          key={key}
+                          className="flex items-center justify-between p-2 bg-white dark:bg-apple-gray-800 rounded text-xs font-mono"
+                        >
+                          <span>{key}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(key);
+                              toast.success('Key copied!');
+                            }}
+                            className="p-1 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded"
                           >
-                            <span className={isUsed ? 'line-through text-apple-gray-400' : ''}>
-                              {key}
-                            </span>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(key);
-                                toast.success('Key copied!');
-                              }}
-                              className="p-1 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded"
-                            >
-                              <Check className="w-3 h-3" />
-                            </button>
-                          </div>
-                        );
-                      })}
+                            <Check className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -292,14 +343,13 @@ export function LoginPage() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-10 grid grid-cols-3 gap-4"
         >
-          {features.map((feature, index) => {
+          {features.map((feature) => {
             const Icon = feature.icon;
             return (
               <motion.div
                 key={feature.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -2 }}
                 className="glass rounded-2xl p-4 text-center cursor-default"
               >
@@ -321,7 +371,7 @@ export function LoginPage() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center text-xs text-apple-gray-400 dark:text-apple-gray-600 mt-8"
         >
-          Alpha v0.1 • Limited to 50 Testers • BYOK Supported
+          Alpha v0.1 • Limited to 50 Testers • Master Key Available
         </motion.p>
       </div>
     </div>

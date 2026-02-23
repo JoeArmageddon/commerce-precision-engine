@@ -225,12 +225,87 @@
   .scroll-padding {
     scroll-padding-top: 100px;
   }
+  
+  /* Mobile touch feedback */
+  .touch-feedback {
+    @apply active:scale-95 transition-transform;
+  }
+  
+  /* Safe area for notched phones */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Prevent text selection on UI elements */
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Mobile-optimized tap targets */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Responsive font sizes */
+  .text-responsive-xs {
+    @apply text-[10px] sm:text-xs;
+  }
+  
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+  
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-responsive-lg {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl;
+  }
+  
+  .text-responsive-2xl {
+    @apply text-xl sm:text-2xl;
+  }
+  
+  /* Mobile padding adjustments */
+  .px-responsive {
+    @apply px-3 sm:px-4;
+  }
+  
+  .py-responsive {
+    @apply py-3 sm:py-4;
+  }
+  
+  .p-responsive {
+    @apply p-3 sm:p-4;
+  }
+  
+  /* Mobile grid adjustments */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
+  }
+  
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+  
+  .grid-responsive-4 {
+    @apply grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4;
+  }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -258,4 +333,30 @@
 /* Dark mode transitions */
 .dark-transition {
   @apply transition-colors duration-300;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  /* Smaller scrollbar on mobile */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  /* Reduce animation complexity on mobile */
+  .gradient-orb {
+    opacity: 0.2;
+  }
+  
+  /* Optimize touch scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media screen and (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px;
+  }
 }
