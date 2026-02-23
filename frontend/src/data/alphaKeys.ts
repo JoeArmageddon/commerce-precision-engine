@@ -1,5 +1,5 @@
 // Alpha Access Keys System
-// MASTER_KEY: Unlimited access, no restrictions
+// One master key for unlimited access
 // Regular ALPHA keys: 20 upload limit per user
 
 export const MASTER_KEY = 'MASTER-KEY-2024-UNLIMITED' as const;
@@ -211,5 +211,6 @@ export function resetUsedAlphaKeys(): void {
   localStorage.removeItem(USER_STORAGE);
 }
 
+// Re-export types and constants
 export { MAX_UPLOADS_REGULAR };
 export type { UserData };
