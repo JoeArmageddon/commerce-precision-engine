@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { TextArea } from '@/components/ui/TextArea';
 import { LoadingOverlay } from '@/components/ui/Loading';
-import { Badge } from '@/components/ui/Badge';
+
 import { subjectsService } from '@/services/subjects.service';
 import { questionsService } from '@/services/questions.service';
 import type { Subject, Chapter } from '@/types';
@@ -40,7 +40,7 @@ export function AskPage() {
   const [selectedSubject, setSelectedSubject] = useState<string>(subjectId || '');
   const [selectedChapter, setSelectedChapter] = useState<string>(chapterId || '');
   const [questionText, setQuestionText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSyllabus, setHasSyllabus] = useState<Record<string, boolean>>({});
 
@@ -121,8 +121,7 @@ export function AskPage() {
     }
   };
 
-  const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
-  const selectedChapterData = chapters.find(c => c.id === selectedChapter);
+
 
   return (
     <Layout>
@@ -240,7 +239,6 @@ export function AskPage() {
                         </p>
                         <Button 
                           size="sm" 
-                          variant="outline"
                           onClick={() => navigate('/syllabus')}
                         >
                           <Upload className="w-4 h-4 mr-2" />
@@ -271,7 +269,7 @@ export function AskPage() {
                       <option value="">General question (no specific chapter)</option>
                       {chapters.map((chapter) => (
                         <option key={chapter.id} value={chapter.id}>
-                          Chapter {chapter.chapter_number}: {chapter.name}
+                          Chapter {chapter.display_order}: {chapter.name}
                         </option>
                       ))}
                     </select>

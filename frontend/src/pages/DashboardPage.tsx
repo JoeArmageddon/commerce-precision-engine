@@ -9,7 +9,6 @@ import {
   Clock, 
   Sparkles,
   Upload,
-  BookOpen,
   Brain,
   Settings,
   FlaskConical,
@@ -19,7 +18,7 @@ import toast from 'react-hot-toast';
 import { Layout } from '@/components/layout/Layout';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Loading, Skeleton } from '@/components/ui/Loading';
+import { Skeleton } from '@/components/ui/Loading';
 import { Badge } from '@/components/ui/Badge';
 import { subjectsService } from '@/services/subjects.service';
 import { questionsService } from '@/services/questions.service';
@@ -205,7 +204,7 @@ export function DashboardPage() {
 
         {/* Subjects Grid */}
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subjects.map((subject, index) => {
+          {subjects.map((subject) => {
             const Icon = subjectIcons[subject.name] || Calculator;
             const gradient = subjectGradients[subject.name] || 'from-apple-gray-400 to-apple-gray-600';
             

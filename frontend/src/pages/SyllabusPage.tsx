@@ -135,7 +135,7 @@ export function SyllabusPage() {
 
     saveSubjects(updated);
     setSyllabusText('');
-    setShowTextInput(false);
+    setShowTextInput(null);
     toast.success('Syllabus saved successfully!');
   };
 
@@ -159,7 +159,7 @@ export function SyllabusPage() {
 
     saveSubjects(updated);
     setNewChapterName('');
-    setShowAddChapter(false);
+    setShowAddChapter(null);
     toast.success('Chapter added');
   };
 

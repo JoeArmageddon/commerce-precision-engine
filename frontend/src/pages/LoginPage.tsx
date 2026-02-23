@@ -3,18 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   BookOpen, 
-  Loader2, 
   Sparkles, 
   Shield, 
   Zap, 
   FlaskConical, 
   Key, 
-  AlertCircle,
   Users,
   Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { authService } from '@/services/auth.service';
+
 import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -87,8 +85,7 @@ export function LoginPage() {
     { icon: Zap, label: 'Study Material RAG' },
   ];
 
-  // Get available keys for display
-  const availableKeys = ALPHA_KEYS.slice(0, 5); // Show first 5 as examples
+
 
   return (
     <div className="min-h-screen bg-apple-gray-50 dark:bg-apple-gray-950 flex items-center justify-center p-4 relative overflow-hidden">
