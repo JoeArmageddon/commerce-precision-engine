@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     
     # App
     debug: bool = False
-    max_llm_timeout: int = 120  # seconds
+    max_llm_timeout: int = 300  # seconds (5 minutes for deep research)
     max_retries: int = 2
     
     # CORS

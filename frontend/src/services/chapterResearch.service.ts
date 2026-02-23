@@ -6,6 +6,27 @@ export interface ChapterResearchRequest {
   chapter_name: string;
 }
 
+export interface DeepResearchRequest {
+  subject: 'Accountancy' | 'Economics' | 'Business Studies';
+  chapter_name: string;
+  include_previous_year?: boolean;
+  include_case_studies?: boolean;
+}
+
+export interface AskQuestionRequest {
+  subject: 'Accountancy' | 'Economics' | 'Business Studies';
+  chapter_name?: string;
+  question: string;
+}
+
+export interface AskQuestionResponse {
+  answer: string;
+  key_points: string[];
+  confidence: number;
+  sources: string[];
+  processing_time_ms: number;
+}
+
 export interface Subtopic {
   title: string;
   description: string;
@@ -62,25 +83,52 @@ export interface ResearchStatus {
   message: string;
 }
 
+// Helper to get headers with user API keys
+const getApiKeyHeaders = (): Record<string, string> => {
+  const userKeys = usersService.getStoredApiKeys();
+  const headers: Record<string, string> = {};
+  if (userKeys.gemini) headers['X-User-Gemini-Key'] = userKeys.gemini;
+  if (userKeys.groq) headers['X-User-Groq-Key'] = userKeys.groq;
+  if (userKeys.serpapi) headers['X-User-Serpapi-Key'] = userKeys.serpapi;
+  return headers;
+};
+
 export const chapterResearchService = {
   /**
-   * Research a CBSE Class 12 Commerce chapter
-   * This performs real-time web search + AI analysis with verification
+   * Research a CBSE Class 12 Commerce chapter (quick mode)
    */
   async researchChapter(data: ChapterResearchRequest): Promise<ChapterResearchResponse> {
-    // Get user's API keys from localStorage
-    const userKeys = usersService.getStoredApiKeys();
-    
-    // Send keys as headers if available
-    const headers: Record<string, string> = {};
-    if (userKeys.gemini) headers['X-User-Gemini-Key'] = userKeys.gemini;
-    if (userKeys.groq) headers['X-User-Groq-Key'] = userKeys.groq;
-    if (userKeys.serpapi) headers['X-User-Serpapi-Key'] = userKeys.serpapi;
-    
     const response = await api.post<ChapterResearchResponse>(
-      '/chapter-research/research', 
+      '/chapter-research/research',
       data,
-      { headers }
+      { headers: getApiKeyHeaders() }
+    );
+    return response.data;
+  },
+
+  /**
+   * Deep research a chapter with comprehensive analysis (slower but more detailed)
+   */
+  async deepResearch(data: DeepResearchRequest): Promise<ChapterResearchResponse> {
+    const response = await api.post<ChapterResearchResponse>(
+      '/chapter-research/deep-research',
+      data,
+      { 
+        headers: getApiKeyHeaders(),
+        timeout: 310000, // 5+ minutes for deep research
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Ask a specific question about a chapter
+   */
+  async askQuestion(data: AskQuestionRequest): Promise<AskQuestionResponse> {
+    const response = await api.post<AskQuestionResponse>(
+      '/chapter-research/ask',
+      data,
+      { headers: getApiKeyHeaders() }
     );
     return response.data;
   },
@@ -89,16 +137,9 @@ export const chapterResearchService = {
    * Check if chapter research service is operational
    */
   async getStatus(): Promise<ResearchStatus> {
-    // Get user's API keys from localStorage
-    const userKeys = usersService.getStoredApiKeys();
-    
-    // Send keys as headers if available
-    const headers: Record<string, string> = {};
-    if (userKeys.gemini) headers['X-User-Gemini-Key'] = userKeys.gemini;
-    if (userKeys.groq) headers['X-User-Groq-Key'] = userKeys.groq;
-    if (userKeys.serpapi) headers['X-User-Serpapi-Key'] = userKeys.serpapi;
-    
-    const response = await api.get<ResearchStatus>('/chapter-research/status', { headers });
+    const response = await api.get<ResearchStatus>('/chapter-research/status', {
+      headers: getApiKeyHeaders(),
+    });
     return response.data;
   },
 };

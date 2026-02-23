@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -17,7 +17,12 @@ import {
   Shield,
   ExternalLink,
   Cpu,
-  Database
+  Database,
+  MessageCircle,
+  Zap,
+  Clock,
+  Send,
+  BrainCircuit,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Layout } from '@/components/layout/Layout';
@@ -25,10 +30,12 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { TextArea } from '@/components/ui/TextArea';
 import { 
   chapterResearchService, 
   type ChapterResearchResponse,
-  type ResearchStatus 
+  type ResearchStatus,
+  type AskQuestionResponse,
 } from '@/services/chapterResearch.service';
 
 // Verification badge colors
@@ -43,11 +50,19 @@ export function ChapterResearchPage() {
   const [subject, setSubject] = useState('');
   const [chapterName, setChapterName] = useState('');
   const [isResearching, setIsResearching] = useState(false);
+  const [isDeepResearch, setIsDeepResearch] = useState(false);
   const [result, setResult] = useState<ChapterResearchResponse | null>(null);
   const [expandedTopics, setExpandedTopics] = useState<number[]>([0]);
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
   const [serviceStatus, setServiceStatus] = useState<ResearchStatus | null>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  
+  // Ask Question states
+  const [question, setQuestion] = useState('');
+  const [isAsking, setIsAsking] = useState(false);
+  const [answer, setAnswer] = useState<AskQuestionResponse | null>(null);
+  const [showAskSection, setShowAskSection] = useState(false);
+  const answerRef = useRef<HTMLDivElement>(null);
 
   // Check service status on mount
   useEffect(() => {
@@ -86,22 +101,31 @@ export function ChapterResearchPage() {
     }
 
     setIsResearching(true);
+    setResult(null);
     
     try {
-      const response = await chapterResearchService.researchChapter({
-        subject: subject as 'Accountancy' | 'Economics' | 'Business Studies',
-        chapter_name: chapterName.trim(),
-      });
+      let response;
+      
+      if (isDeepResearch) {
+        toast.loading('Deep research in progress... This may take 2-3 minutes', { duration: 5000 });
+        response = await chapterResearchService.deepResearch({
+          subject: subject as 'Accountancy' | 'Economics' | 'Business Studies',
+          chapter_name: chapterName.trim(),
+          include_previous_year: true,
+        });
+      } else {
+        response = await chapterResearchService.researchChapter({
+          subject: subject as 'Accountancy' | 'Economics' | 'Business Studies',
+          chapter_name: chapterName.trim(),
+        });
+      }
       
       setResult(response);
       
-      // Show appropriate toast based on verification status
       if (response.verification.status === 'verified') {
-        toast.success('Research complete! Content verified for accuracy.');
+        toast.success(isDeepResearch ? 'Deep research complete!' : 'Research complete!');
       } else if (response.verification.status === 'needs_review') {
-        toast('Research complete with warnings. Please review carefully.', {
-          icon: '⚠️',
-        });
+        toast('Research complete with warnings. Please review carefully.', { icon: '⚠️' });
       } else {
         toast.error('Research completed but content may be unreliable.');
       }
@@ -112,6 +136,39 @@ export function ChapterResearchPage() {
       toast.error(errorMessage);
     } finally {
       setIsResearching(false);
+    }
+  };
+
+  const handleAskQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!subject || !question.trim()) {
+      toast.error('Please select a subject and enter a question');
+      return;
+    }
+
+    setIsAsking(true);
+    setAnswer(null);
+    
+    try {
+      const response = await chapterResearchService.askQuestion({
+        subject: subject as 'Accountancy' | 'Economics' | 'Business Studies',
+        chapter_name: chapterName.trim() || undefined,
+        question: question.trim(),
+      });
+      
+      setAnswer(response);
+      
+      // Scroll to answer
+      setTimeout(() => {
+        answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      
+    } catch (error: any) {
+      console.error('Ask question failed:', error);
+      toast.error('Failed to get answer. Please try again.');
+    } finally {
+      setIsAsking(false);
     }
   };
 
@@ -223,8 +280,34 @@ export function ChapterResearchPage() {
           </motion.div>
         )}
 
+        {/* Quick Actions Toggle */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex gap-2"
+        >
+          <Button
+            variant={!showAskSection ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setShowAskSection(false)}
+            className="flex-1"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Research Chapter
+          </Button>
+          <Button
+            variant={showAskSection ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setShowAskSection(true)}
+            className="flex-1"
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Ask Question
+          </Button>
+        </motion.div>
+
         {/* Research Form */}
-        {!result && (
+        {!showAskSection && !result && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -279,30 +362,67 @@ export function ChapterResearchPage() {
                     </p>
                   </div>
 
-                  {/* What AI Will Find */}
+                  {/* Deep Research Toggle */}
                   <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                    <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-3 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      AI will research and find:
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Key subtopics & concepts</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          isDeepResearch 
+                            ? 'bg-purple-500 text-white' 
+                            : 'bg-purple-100 dark:bg-purple-800 text-purple-600'
+                        }`}>
+                          <BrainCircuit className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-purple-900 dark:text-purple-200">
+                            Deep Research Mode
+                          </h4>
+                          <p className="text-xs text-purple-700 dark:text-purple-300">
+                            {isDeepResearch 
+                              ? 'Comprehensive analysis (2-3 mins) with more content' 
+                              : 'Quick research (30-60 secs) with essential content'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Previous board questions</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Important Q&A (2-8 marks)</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Quick revision notes</span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsDeepResearch(!isDeepResearch)}
+                        className={`relative w-14 h-7 rounded-full transition-colors ${
+                          isDeepResearch ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      >
+                        <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
+                          isDeepResearch ? 'translate-x-7' : 'translate-x-0'
+                        }`} />
+                      </button>
                     </div>
+                    
+                    {isDeepResearch && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto'}}
+                        className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700"
+                      >
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>8-10 detailed subtopics</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>8-10 board questions</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Previous year questions</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Higher accuracy</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Submit Button */}
@@ -316,19 +436,21 @@ export function ChapterResearchPage() {
                     {isResearching ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        AI Researching & Verifying...
+                        {isDeepResearch ? 'Deep Researching...' : 'Researching...'}
                       </>
                     ) : (
                       <>
                         <Search className="w-5 h-5 mr-2" />
-                        Start Deep Research
+                        {isDeepResearch ? 'Start Deep Research' : 'Start Quick Research'}
                       </>
                     )}
                   </Button>
 
                   {isResearching && (
                     <p className="text-center text-sm text-apple-gray-500">
-                      This may take 15-30 seconds. We're searching the web and verifying content through multiple AI agents.
+                      {isDeepResearch 
+                        ? 'Deep research may take 2-3 minutes. We\'re doing comprehensive analysis...'
+                        : 'This may take 30-60 seconds. We\'re gathering information...'}
                     </p>
                   )}
                 </form>
@@ -337,9 +459,150 @@ export function ChapterResearchPage() {
           </motion.div>
         )}
 
+        {/* Ask Question Form */}
+        {showAskSection && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card>
+              <Card.Body className="p-6 space-y-6">
+                {/* Subject Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-apple-gray-700 dark:text-apple-gray-300 mb-3">
+                    Select Subject <span className="text-apple-red">*</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {subjects.map((sub) => (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => setSubject(sub.id)}
+                        className={`p-4 rounded-xl text-center transition-all border-2 ${
+                          subject === sub.id
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-apple-gray-200 dark:border-apple-gray-700 hover:border-blue-300'
+                        }`}
+                      >
+                        <BookOpen className={`w-6 h-6 mx-auto mb-2 ${
+                          subject === sub.id ? 'text-blue-500' : 'text-apple-gray-400'
+                        }`} />
+                        <p className={`font-medium text-sm ${
+                          subject === sub.id ? 'text-blue-700 dark:text-blue-300' : 'text-apple-gray-700 dark:text-apple-gray-300'
+                        }`}>
+                          {sub.name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optional Chapter Context */}
+                <div>
+                  <label className="block text-sm font-medium text-apple-gray-700 dark:text-apple-gray-300 mb-2">
+                    Chapter Name <span className="text-apple-gray-400">(Optional)</span>
+                  </label>
+                  <Input
+                    placeholder="e.g., Partnership Accounting (helps provide better context)"
+                    value={chapterName}
+                    onChange={(e) => setChapterName(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Question Input */}
+                <form onSubmit={handleAskQuestion}>
+                  <label className="block text-sm font-medium text-apple-gray-700 dark:text-apple-gray-300 mb-2">
+                    Your Question <span className="text-apple-red">*</span>
+                  </label>
+                  <TextArea
+                    placeholder="e.g., What is Partnership Deed? Explain its contents and importance."
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    rows={4}
+                    className="w-full mb-3"
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    isLoading={isAsking}
+                    disabled={!subject || !question.trim() || isAsking}
+                  >
+                    {isAsking ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Getting Answer...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5 mr-2" />
+                        Get Answer
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                {/* Answer Display */}
+                <AnimatePresence>
+                  {answer && (
+                    <motion.div
+                      ref={answerRef}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="border-t border-apple-gray-200 dark:border-apple-gray-700 pt-6"
+                    >
+                      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
+                        <Card.Body className="p-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Sparkles className="w-5 h-5 text-blue-500" />
+                            <h3 className="font-semibold text-blue-900 dark:text-blue-200">
+                              AI Answer
+                            </h3>
+                            <Badge variant="default" size="sm" className="ml-auto">
+                              {Math.round(answer.confidence * 100)}% Confidence
+                            </Badge>
+                          </div>
+                          
+                          <div className="prose dark:prose-invert max-w-none">
+                            <p className="text-apple-gray-800 dark:text-apple-gray-200 whitespace-pre-line">
+                              {answer.answer}
+                            </p>
+                          </div>
+
+                          {answer.key_points.length > 0 && (
+                            <div className="mt-4 p-4 bg-white/50 dark:bg-black/20 rounded-lg">
+                              <h4 className="font-medium text-sm text-apple-gray-700 dark:text-apple-gray-300 mb-2">
+                                Key Points:
+                              </h4>
+                              <ul className="space-y-1">
+                                {answer.key_points.map((point, idx) => (
+                                  <li key={idx} className="text-sm text-apple-gray-600 dark:text-apple-gray-400 flex items-start gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
+                                    {point}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          <div className="mt-4 flex items-center justify-between text-xs text-apple-gray-500">
+                            <span>Sources: {answer.sources.join(', ')}</span>
+                            <span>{answer.processing_time_ms}ms</span>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Research Results */}
         <AnimatePresence>
-          {result && (
+          {result && !showAskSection && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -381,6 +644,33 @@ export function ChapterResearchPage() {
                       }}
                     >
                       Research Another
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+
+              {/* Quick Ask Question Card */}
+              <Card className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+                <Card.Body className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <MessageCircle className="w-6 h-6" />
+                      <div>
+                        <h3 className="font-semibold">Have a specific question?</h3>
+                        <p className="text-sm text-white/80">Ask anything about {result.chapter_name}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        setShowAskSection(true);
+                        setSubject(result.subject);
+                        setChapterName(result.chapter_name);
+                      }}
+                      className="bg-white/20 hover:bg-white/30 text-white"
+                    >
+                      Ask Now
                     </Button>
                   </div>
                 </Card.Body>

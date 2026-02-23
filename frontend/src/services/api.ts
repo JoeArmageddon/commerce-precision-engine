@@ -9,7 +9,7 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 130000, // 130 seconds (slightly more than backend max)
+  timeout: 310000, // 310 seconds (slightly more than backend max of 300s)
 });
 
 // Request interceptor - add auth token
