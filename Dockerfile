@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy backend files
 COPY backend/ .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies (using deploy-friendly requirements)
+RUN pip install --no-cache-dir -r requirements-deploy.txt
 
 # Generate Prisma client
 RUN prisma generate
