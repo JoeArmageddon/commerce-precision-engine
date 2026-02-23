@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
-  Key, 
   Eye, 
   EyeOff, 
   Save, 
-  Trash2, 
-  Check,
+  Trash2,
   AlertTriangle,
   Sparkles,
   Zap,
@@ -63,11 +61,7 @@ export function SettingsPage() {
     }
   };
 
-  const maskKey = (key?: string) => {
-    if (!key) return '';
-    if (key.length <= 8) return '•'.repeat(key.length);
-    return key.slice(0, 4) + '•'.repeat(key.length - 8) + key.slice(-4);
-  };
+
 
   return (
     <div className="min-h-screen bg-apple-gray-50 dark:bg-apple-gray-950">

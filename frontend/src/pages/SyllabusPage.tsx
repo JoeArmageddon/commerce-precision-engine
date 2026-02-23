@@ -38,9 +38,9 @@ export function SyllabusPage() {
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [newChapterName, setNewChapterName] = useState('');
-  const [showAddChapter, setShowAddChapter] = useState(false);
+  const [showAddChapter, setShowAddChapter] = useState<string | null>(null);
   const [syllabusText, setSyllabusText] = useState('');
-  const [showTextInput, setShowTextInput] = useState(false);
+  const [showTextInput, setShowTextInput] = useState<string | null>(null);
 
   // Load saved syllabi on mount
   useEffect(() => {

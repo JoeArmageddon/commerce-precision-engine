@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageCircle, Hash, Sparkles } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Layout } from '@/components/layout/Layout';
 import { Card } from '@/components/ui/Card';
