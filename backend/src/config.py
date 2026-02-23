@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     groq_api_key: str | None = None
     
+    # Web Search - SerpAPI for real-time Google search
+    serpapi_key: str | None = None
+    
     # App
     debug: bool = False
     max_llm_timeout: int = 120  # seconds

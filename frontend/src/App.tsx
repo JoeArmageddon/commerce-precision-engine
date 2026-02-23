@@ -15,6 +15,7 @@ import { SyllabusPage } from '@/pages/SyllabusPage';
 import { StudyMaterialPage } from '@/pages/StudyMaterialPage';
 import { AlphaStatusPage } from '@/pages/AlphaStatusPage';
 import { StudentGuidePage } from '@/pages/StudentGuidePage';
+import { ChapterResearchPage } from '@/pages/ChapterResearchPage';
 
 // Protected route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -168,6 +169,14 @@ function App() {
           element={
             <ProtectedRoute>
               <StudentGuidePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chapter-research"
+          element={
+            <ProtectedRoute>
+              <ChapterResearchPage />
             </ProtectedRoute>
           }
         />

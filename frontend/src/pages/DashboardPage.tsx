@@ -12,7 +12,8 @@ import {
   Brain,
   Settings,
   FlaskConical,
-  FileText
+  FileText,
+  Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Layout } from '@/components/layout/Layout';
@@ -143,7 +144,7 @@ export function DashboardPage() {
           <h2 className="text-lg font-semibold text-apple-gray-900 dark:text-white mb-4">
             Quick Actions
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               { 
                 icon: Upload, 
@@ -152,9 +153,15 @@ export function DashboardPage() {
                 onClick: () => navigate('/syllabus')
               },
               { 
+                icon: Globe, 
+                label: 'Chapter Research', 
+                color: 'from-purple-500 to-pink-500',
+                onClick: () => navigate('/chapter-research')
+              },
+              { 
                 icon: FileText, 
                 label: 'Study Materials', 
-                color: 'from-purple-500 to-pink-500',
+                color: 'from-indigo-500 to-purple-500',
                 onClick: () => navigate('/study-materials')
               },
               { 

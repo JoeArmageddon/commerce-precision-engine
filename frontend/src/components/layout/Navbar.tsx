@@ -12,7 +12,8 @@ import {
   FileText,
   Settings,
   FlaskConical,
-  HelpCircle
+  HelpCircle,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/stores/auth.store';
@@ -39,6 +40,11 @@ export function Navbar() {
 
   const actionItems = [
     { 
+      label: 'Research', 
+      icon: Globe,
+      onClick: () => navigate('/chapter-research') 
+    },
+    { 
       label: 'Syllabus', 
       icon: Upload,
       onClick: () => navigate('/syllabus') 
@@ -59,7 +65,7 @@ export function Navbar() {
       onClick: () => navigate('/settings') 
     },
     { 
-      label: 'Alpha Status', 
+      label: 'Alpha', 
       icon: FlaskConical,
       onClick: () => navigate('/alpha-status'),
       hidden: false // Show to all users for transparency
