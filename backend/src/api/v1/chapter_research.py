@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Literal
 from src.auth import get_current_user
+from src.database import get_prisma
 from src.services.chapter_research_service import get_chapter_research_service
 
 router = APIRouter(prefix="/chapter-research", tags=["Chapter Research"])
@@ -83,7 +84,7 @@ async def research_chapter(
     Research a CBSE Class 12 Commerce chapter with 4-layer verification.
     
     This endpoint performs:
-    1. Real-time web search for CBSE content
+    1. Real-time web search for CBSE content (uses user's SerpAPI key if available)
     2. AI extraction and structuring
     3. CBSE syllabus verification
     4. Accuracy auditing
@@ -92,12 +93,20 @@ async def research_chapter(
     **Note:** This is a computationally expensive operation (15-30 seconds).
     Results are verified for accuracy but students should cross-check with official NCERT.
     """
+    prisma = await get_prisma()
     service = get_chapter_research_service()
+    
+    # Fetch user's API keys (if any)
+    user_api_keys = await prisma.userapikey.find_unique(
+        where={"userId": current_user["id"]}
+    )
+    user_serpapi_key = user_api_keys.serpapiKey if user_api_keys else None
     
     try:
         result = await service.research_chapter(
             subject=request.subject,
             chapter_name=request.chapter_name,
+            user_serpapi_key=user_serpapi_key,
         )
         
         # Check if we got a valid result
@@ -174,19 +183,34 @@ async def research_status(
     """Check if chapter research service is operational."""
     from src.config import get_settings
     
+    prisma = await get_prisma()
     settings = get_settings()
     
     # Check required configurations
     has_llm = bool(settings.gemini_api_key or settings.groq_api_key)
-    has_search = bool(getattr(settings, 'serpapi_key', None))
+    has_system_search = bool(getattr(settings, 'serpapi_key', None))
+    
+    # Check if user has their own SerpAPI key
+    user_api_keys = await prisma.userapikey.find_unique(
+        where={"userId": current_user["id"]}
+    )
+    has_user_search = bool(user_api_keys and user_api_keys.serpapiKey)
+    
+    has_search = has_system_search or has_user_search
+    
+    message = "Service unavailable - no AI provider configured"
+    if has_llm and has_search:
+        if has_user_search:
+            message = "Full functionality - using your personal SerpAPI key"
+        else:
+            message = "Full functionality - using system web search"
+    elif has_llm:
+        message = "Limited functionality - using AI knowledge only (add SerpAPI key in Settings for better results)"
     
     return {
         "status": "operational" if has_llm else "degraded",
         "llm_available": has_llm,
         "web_search_available": has_search,
-        "message": (
-            "Full functionality" if has_llm and has_search
-            else "Limited functionality - using AI knowledge only" if has_llm
-            else "Service unavailable - no AI provider configured"
-        ),
+        "using_personal_key": has_user_search,
+        "message": message,
     }

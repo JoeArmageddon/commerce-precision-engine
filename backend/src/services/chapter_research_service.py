@@ -93,6 +93,7 @@ class ChapterResearchService:
         self,
         subject: str,
         chapter_name: str,
+        user_serpapi_key: str | None = None,
     ) -> dict[str, Any]:
         """
         Perform comprehensive chapter research with verification.
@@ -100,11 +101,16 @@ class ChapterResearchService:
         Args:
             subject: Subject name (Accountancy, Economics, Business Studies)
             chapter_name: Chapter name to research
+            user_serpapi_key: Optional user's personal SerpAPI key
             
         Returns:
             Dictionary with verified chapter content
         """
         start_time = time.time()
+        
+        # Use user's SerpAPI key if provided, otherwise use system key
+        if user_serpapi_key:
+            self.web_search.serpapi_key = user_serpapi_key
         
         # Step 1: Parallel web searches
         search_tasks = [

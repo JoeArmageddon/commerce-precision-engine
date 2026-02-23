@@ -15,7 +15,20 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
   questions   Question[]
   documents   Document[]
+  apiKeys     UserApiKey?
   @@map("users")
+}
+
+model UserApiKey {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  geminiKey   String?  @map("gemini_key")
+  groqKey     String?  @map("groq_key")
+  serpapiKey  String?  @map("serpapi_key")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("user_api_keys")
 }
 
 model Subject {

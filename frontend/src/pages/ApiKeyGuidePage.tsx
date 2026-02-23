@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Key, Check, ExternalLink, AlertTriangle, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, Key, Check, ExternalLink, AlertTriangle, Sparkles, Zap, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -9,7 +9,39 @@ export function ApiKeyGuidePage() {
 
   const steps = [
     {
-      provider: 'Google Gemini (Recommended - Free Tier)',
+      provider: 'SerpAPI (For Web Search - Recommended)',
+      icon: Globe,
+      color: 'from-purple-500 to-pink-500',
+      steps: [
+        {
+          title: 'Go to SerpAPI',
+          description: 'Visit SerpAPI to create your account.',
+          link: 'https://serpapi.com/signup',
+          linkText: 'serpapi.com/signup',
+        },
+        {
+          title: 'Create Account',
+          description: 'Sign up with email or Google account. No credit card required.',
+        },
+        {
+          title: 'Get API Key',
+          description: 'Go to Dashboard and copy your API key.',
+          link: 'https://serpapi.com/manage-api-key',
+          linkText: 'serpapi.com/manage-api-key',
+        },
+        {
+          title: 'Add to Settings',
+          description: 'Paste the key in Settings → SerpAPI Key field.',
+        },
+      ],
+      notes: [
+        '100 free searches per month',
+        'Required for Chapter Research feature',
+        'Real-time Google search results',
+      ],
+    },
+    {
+      provider: 'Google Gemini (AI - Recommended Free Tier)',
       icon: Sparkles,
       color: 'from-blue-500 to-cyan-500',
       steps: [
@@ -39,7 +71,7 @@ export function ApiKeyGuidePage() {
       ],
     },
     {
-      provider: 'Groq (Fast & Cheap - Alternative)',
+      provider: 'Groq (AI - Fast Alternative)',
       icon: Zap,
       color: 'from-orange-500 to-red-500',
       steps: [
@@ -117,7 +149,8 @@ export function ApiKeyGuidePage() {
                 Important: Keep Your API Key Safe
               </h3>
               <p className="text-sm text-amber-800 dark:text-amber-300">
-                Your API key is stored locally in your browser and never sent to our servers. 
+                Your API keys are securely stored on our servers encrypted at rest. 
+                They are only used to process your requests and are never shared with third parties.
                 Do not share your API key with anyone. If you suspect your key has been compromised, 
                 revoke it immediately from the provider's dashboard.
               </p>
@@ -216,7 +249,7 @@ export function ApiKeyGuidePage() {
               },
               {
                 q: 'Is my API key secure?',
-                a: 'Yes. Your API key is stored only in your browser\'s local storage and is used directly from your browser to call the AI services. Our servers never see your API key.',
+                a: 'Yes. Your API keys are securely stored on our servers encrypted at rest. They are only used to process your requests and are never shared with third parties.',
               },
               {
                 q: 'Can I switch between providers?',
