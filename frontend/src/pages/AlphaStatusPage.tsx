@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
-  Users, 
   RefreshCw, 
   Trash2, 
   AlertCircle,
-  Check,
   X,
   Copy
 } from 'lucide-react';
@@ -17,9 +15,7 @@ import {
   ALPHA_KEYS, 
   getUsedAlphaKeys, 
   getRemainingKeysCount,
-  getAvailableAlphaKeys,
-  resetUsedAlphaKeys,
-  isAlphaKeyUsed 
+  resetUsedAlphaKeys
 } from '@/data/alphaKeys';
 import toast from 'react-hot-toast';
 
@@ -129,7 +125,7 @@ export function AlphaStatusPage() {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {usedKeys.map((used, index) => (
+                  {usedKeys.map((used) => (
                     <div
                       key={used.key}
                       className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
@@ -192,7 +188,6 @@ export function AlphaStatusPage() {
               </h2>
               <div className="flex gap-4">
                 <Button 
-                  variant="outline" 
                   onClick={loadData}
                   className="flex items-center gap-2"
                 >
@@ -205,7 +200,6 @@ export function AlphaStatusPage() {
                     <span className="text-sm text-apple-red">Confirm reset?</span>
                     <Button 
                       size="sm" 
-                      variant="outline"
                       onClick={() => setShowConfirmReset(false)}
                     >
                       Cancel
@@ -221,9 +215,8 @@ export function AlphaStatusPage() {
                   </div>
                 ) : (
                   <Button 
-                    variant="outline" 
                     onClick={() => setShowConfirmReset(true)}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
+                    className="text-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Reset All Keys
