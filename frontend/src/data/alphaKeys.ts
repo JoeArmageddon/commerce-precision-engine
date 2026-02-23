@@ -211,5 +211,5 @@ export function resetUsedAlphaKeys(): void {
   localStorage.removeItem(USER_STORAGE);
 }
 
-export { MAX_UPLOADS_REGULAR, MASTER_KEY };
+export { MAX_UPLOADS_REGULAR };
 export type { UserData };

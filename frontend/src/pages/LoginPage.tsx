@@ -12,7 +12,7 @@ import {
   Check,
   Crown,
   Upload,
-  Infinity
+  Infinity as InfinityIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -230,7 +230,7 @@ export function LoginPage() {
                   <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-xs">
                     <Upload className="w-4 h-4 flex-shrink-0" />
                     <span>Regular users: <strong>{MAX_UPLOADS_REGULAR} materials max</strong></span>
-                    <Infinity className="w-4 h-4 ml-auto text-amber-500" />
+                    <InfinityIcon className="w-4 h-4 ml-auto text-amber-500" />
                     <span className="text-amber-600">Master: Unlimited</span>
                   </div>
                 </div>

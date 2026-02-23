@@ -53,7 +53,7 @@ export function StudyMaterialPage() {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [user, setUser] = useState(getCurrentUser());
+  const user = getCurrentUser();
   const [uploadsRemaining, setUploadsRemaining] = useState<number>(MAX_UPLOADS_REGULAR);
 
   // Load materials and user info
