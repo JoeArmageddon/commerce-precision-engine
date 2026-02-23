@@ -350,7 +350,7 @@ async def research_status(
     # Check system API keys
     has_system_gemini = bool(settings.gemini_api_key)
     has_system_groq = bool(settings.groq_api_key)
-    has_system_serpapi = bool(getattr(settings, 'serpapi_key', None))
+    has_system_serpapi = bool(settings.serpapi_key)
     
     # Check user-provided API keys from headers
     has_user_gemini = bool(x_user_gemini_key)
@@ -401,7 +401,7 @@ async def research_chapter(
     # Determine which API keys to use (user-provided takes precedence)
     gemini_key = x_user_gemini_key or settings.gemini_api_key
     groq_key = x_user_groq_key or settings.groq_api_key
-    serpapi_key = x_user_serpapi_key or getattr(settings, 'serpapi_key', None)
+    serpapi_key = x_user_serpapi_key or settings.serpapi_key
     
     has_llm = bool(gemini_key or groq_key)
     
@@ -417,19 +417,20 @@ async def research_chapter(
         
         async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={gemini_key}",
                 headers={"Content-Type": "application/json"},
                 json={
                     "contents": [{"parts": [{"text": full_prompt}]}],
                     "generationConfig": {
                         "temperature": temp,
                         "maxOutputTokens": 4000,
-                        "responseMimeType": "application/json",
                     },
                 },
             )
             
             if response.status_code != 200:
+                error_text = response.text[:200]
+                print(f"Gemini API error: {response.status_code} - {error_text}")
                 raise Exception(f"Gemini API error: {response.status_code}")
             
             data = response.json()
@@ -454,16 +455,17 @@ async def research_chapter(
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "llama-3.1-70b-versatile",
+                    "model": "llama-3.3-70b-versatile",
                     "messages": messages,
                     "temperature": temp,
                     "max_tokens": 4000,
-                    "response_format": {"type": "json_object"},
                 },
             )
             
             if response.status_code != 200:
-                raise Exception(f"Groq API error: {response.status_code}")
+                error_text = response.text[:200]
+                print(f"Groq API error: {response.status_code} - {error_text}")
+                raise Exception(f"Groq API error: {response.status_code} - {error_text}")
             
             data = response.json()
             content = data["choices"][0]["message"]["content"]
