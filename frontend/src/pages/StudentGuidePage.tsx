@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Lightbulb,
   Crown,
-  Lock,
   Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -362,7 +361,7 @@ export function StudentGuidePage() {
                 Contact the admin or check the API Key Guide for technical issues.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <Button variant="outline" onClick={() => navigate('/api-key-guide')}>
+                <Button onClick={() => navigate('/api-key-guide')}>
                   <Key className="w-4 h-4 mr-2" />
                   API Key Guide
                 </Button>
