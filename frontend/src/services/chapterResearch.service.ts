@@ -1,4 +1,5 @@
 import { api } from '@/services/api';
+import { usersService } from '@/services/users.service';
 
 export interface ChapterResearchRequest {
   subject: 'Accountancy' | 'Economics' | 'Business Studies';
@@ -57,6 +58,7 @@ export interface ResearchStatus {
   status: 'operational' | 'degraded' | 'unavailable';
   llm_available: boolean;
   web_search_available: boolean;
+  using_personal_key?: boolean;
   message: string;
 }
 
@@ -66,7 +68,20 @@ export const chapterResearchService = {
    * This performs real-time web search + AI analysis with verification
    */
   async researchChapter(data: ChapterResearchRequest): Promise<ChapterResearchResponse> {
-    const response = await api.post<ChapterResearchResponse>('/chapter-research/research', data);
+    // Get user's API keys from localStorage
+    const userKeys = usersService.getStoredApiKeys();
+    
+    // Send keys as headers if available
+    const headers: Record<string, string> = {};
+    if (userKeys.gemini) headers['X-User-Gemini-Key'] = userKeys.gemini;
+    if (userKeys.groq) headers['X-User-Groq-Key'] = userKeys.groq;
+    if (userKeys.serpapi) headers['X-User-Serpapi-Key'] = userKeys.serpapi;
+    
+    const response = await api.post<ChapterResearchResponse>(
+      '/chapter-research/research', 
+      data,
+      { headers }
+    );
     return response.data;
   },
 
@@ -74,7 +89,16 @@ export const chapterResearchService = {
    * Check if chapter research service is operational
    */
   async getStatus(): Promise<ResearchStatus> {
-    const response = await api.get<ResearchStatus>('/chapter-research/status');
+    // Get user's API keys from localStorage
+    const userKeys = usersService.getStoredApiKeys();
+    
+    // Send keys as headers if available
+    const headers: Record<string, string> = {};
+    if (userKeys.gemini) headers['X-User-Gemini-Key'] = userKeys.gemini;
+    if (userKeys.groq) headers['X-User-Groq-Key'] = userKeys.groq;
+    if (userKeys.serpapi) headers['X-User-Serpapi-Key'] = userKeys.serpapi;
+    
+    const response = await api.get<ResearchStatus>('/chapter-research/status', { headers });
     return response.data;
   },
 };
