@@ -5,13 +5,15 @@ Includes chapter-research routes that work with or without API keys.
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
 from src.config import get_settings
 from src.models.schemas import HealthCheckResponse
+from src.services.llm_service import LLMService
+from src.services.web_search_service import WebSearchService
 
 settings = get_settings()
 
@@ -128,29 +130,6 @@ class ChapterResearchResponse(BaseModel):
     warnings: list[str] | None
     processing_time_ms: int
     generated_at: str
-
-
-# System prompts for chapter research
-CHAPTER_LAYER1_SYSTEM_PROMPT = """You are an expert CBSE Class 12 Commerce curriculum designer with 20+ years of experience.
-Your task is to generate comprehensive, accurate chapter content for CBSE Class 12 Commerce.
-
-Respond in JSON format with these fields:
-- chapter_name: Exact chapter name
-- subject: Subject name
-- subtopics: Array of objects with {title, description, key_points (array of strings)}
-- quick_notes: Array of bullet points for quick revision
-- mnemonics: Array of memory aids if applicable (or empty array)
-- confidence: Float 0-1 indicating confidence in accuracy
-- warnings: Array of any uncertainties or missing information (or empty array)"""
-
-CHAPTER_LAYER4_SYSTEM_PROMPT = """You are a CBSE exam expert. Based on the chapter content and typical CBSE patterns, generate:
-1. Important questions that commonly appear in board exams
-2. Expected answers with CBSE marking scheme
-3. Question types (short 2-3 marks, long 4-6 marks)
-
-Respond in JSON format with:
-- important_questions: Array of {question, answer, marks, type}
-- question_authenticity_score: Float 0-100 (how likely these are real board questions)"""
 
 
 def get_demo_response(subject: str, chapter_name: str, processing_time: int) -> ChapterResearchResponse:
@@ -381,6 +360,26 @@ async def research_status(
     }
 
 
+# System prompts for chapter research
+CHAPTER_LAYER1_SYSTEM_PROMPT = """You are an expert CBSE Class 12 Commerce curriculum designer with 20+ years of experience.
+Generate comprehensive, accurate chapter content for CBSE Class 12 Commerce.
+
+Respond in JSON format with these fields:
+- chapter_name: Exact chapter name
+- subject: Subject name  
+- subtopics: Array of objects with {title, description, key_points (array of strings)}
+- quick_notes: Array of bullet points for quick revision
+- mnemonics: Array of memory aids (or empty array)
+- confidence: Number between 0-1
+- warnings: Array of strings (or empty array)"""
+
+CHAPTER_LAYER4_SYSTEM_PROMPT = """You are a CBSE exam expert. Generate important board exam questions with detailed answers.
+
+Respond in JSON format with:
+- important_questions: Array of {question, answer, marks (number), type ("short" or "long")}
+- question_authenticity_score: Number 0-100"""
+
+
 @app.post("/api/v1/chapter-research/research", response_model=ChapterResearchResponse)
 async def research_chapter(
     request: ChapterResearchRequest,
@@ -393,9 +392,6 @@ async def research_chapter(
     Uses real AI if API keys are available, otherwise returns demo data.
     """
     import time
-    import json
-    import httpx
-    
     start_time = time.time()
     
     # Determine which API keys to use (user-provided takes precedence)
@@ -410,181 +406,82 @@ async def research_chapter(
         processing_time = int((time.time() - start_time) * 1000)
         return get_demo_response(request.subject, request.chapter_name, processing_time)
     
-    # Helper function to call Gemini
-    async def call_gemini(prompt: str, system_msg: str | None = None, temp: float = 0.3) -> dict:
-        full_prompt = f"{system_msg}\n\n{prompt}" if system_msg else prompt
-        full_prompt += "\n\nRespond ONLY with valid JSON."
-        
-        async with httpx.AsyncClient(timeout=120) as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={gemini_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
-                    "generationConfig": {
-                        "temperature": temp,
-                        "maxOutputTokens": 4000,
-                    },
-                },
-            )
-            
-            if response.status_code != 200:
-                error_text = response.text[:200]
-                print(f"Gemini API error: {response.status_code} - {error_text}")
-                raise Exception(f"Gemini API error: {response.status_code}")
-            
-            data = response.json()
-            if "candidates" not in data or not data["candidates"]:
-                raise Exception("No content generated")
-            
-            content = data["candidates"][0]["content"]["parts"][0]["text"]
-            return json.loads(content)
-    
-    # Helper function to call Groq
-    async def call_groq(prompt: str, system_msg: str | None = None, temp: float = 0.3) -> dict:
-        messages = []
-        if system_msg:
-            messages.append({"role": "system", "content": system_msg})
-        messages.append({"role": "user", "content": prompt + "\n\nRespond ONLY with valid JSON."})
-        
-        async with httpx.AsyncClient(timeout=120) as client:
-            response = await client.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {groq_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": "llama-3.3-70b-versatile",
-                    "messages": messages,
-                    "temperature": temp,
-                    "max_tokens": 4000,
-                },
-            )
-            
-            if response.status_code != 200:
-                error_text = response.text[:200]
-                print(f"Groq API error: {response.status_code} - {error_text}")
-                raise Exception(f"Groq API error: {response.status_code} - {error_text}")
-            
-            data = response.json()
-            content = data["choices"][0]["message"]["content"]
-            return json.loads(content)
-    
-    # Helper function to call LLM with fallback
-    async def call_llm(prompt: str, system_msg: str | None = None, temp: float = 0.3) -> dict:
-        errors = []
-        
-        if gemini_key:
-            try:
-                return await call_gemini(prompt, system_msg, temp)
-            except Exception as e:
-                errors.append(f"Gemini: {str(e)}")
-        
-        if groq_key:
-            try:
-                return await call_groq(prompt, system_msg, temp)
-            except Exception as e:
-                errors.append(f"Groq: {str(e)}")
-        
-        raise Exception(f"All LLM providers failed: {'; '.join(errors)}")
-    
-    # Helper function for web search
-    async def search_web(subject: str, chapter: str) -> dict:
-        if not serpapi_key:
-            return {"sources": [], "snippets": []}
-        
-        try:
-            queries = [
-                f"CBSE Class 12 {subject} {chapter} notes summary",
-                f"CBSE Class 12 {subject} {chapter} important concepts NCERT",
-                f"CBSE {subject} {chapter} previous year board questions",
-            ]
-            
-            all_sources = []
-            all_snippets = []
-            
-            async with httpx.AsyncClient(timeout=30) as client:
-                for query in queries:
-                    params = {
-                        "q": query,
-                        "api_key": serpapi_key,
-                        "engine": "google",
-                        "hl": "en",
-                        "gl": "in",
-                        "num": 5,
-                    }
-                    
-                    response = await client.get("https://serpapi.com/search", params=params)
-                    
-                    if response.status_code == 200:
-                        data = response.json()
-                        for item in data.get("organic_results", [])[:3]:
-                            all_sources.append({
-                                "title": item.get("title", ""),
-                                "link": item.get("link", ""),
-                                "source": item.get("link", "").replace("www.", "").split("/")[0] if item.get("link") else "unknown",
-                            })
-                            if item.get("snippet"):
-                                all_snippets.append(item["snippet"])
-            
-            return {"sources": all_sources[:10], "snippets": all_snippets[:15]}
-        except Exception:
-            return {"sources": [], "snippets": []}
-    
     try:
-        # Step 1: Web search (optional)
-        search_results = await search_web(request.subject, request.chapter_name)
+        # Create temporary service instances with the keys
+        llm_service = LLMService()
+        # Override with user/system keys
+        if gemini_key:
+            llm_service.gemini_api_key = gemini_key
+        if groq_key:
+            llm_service.groq_api_key = groq_key
+            
+        web_search = WebSearchService()
+        if serpapi_key:
+            web_search.serpapi_key = serpapi_key
         
-        # Step 2: Layer 1 - Generate chapter content
+        # Step 1: Web search (optional)
+        search_results = {"sources": [], "snippets": []}
+        if serpapi_key:
+            try:
+                search_results = await web_search.search_cbse_content(
+                    request.subject, request.chapter_name
+                )
+            except Exception as e:
+                print(f"Web search failed: {e}")
+        
+        # Step 2: Generate chapter content with LLM
+        snippets_text = "\n".join(search_results.get("content_snippets", [])[:10])
+        
         layer1_prompt = f"""SUBJECT: {request.subject}
 CHAPTER: {request.chapter_name}
 
-WEB SEARCH RESULTS (for reference):
-{chr(10).join(search_results.get("snippets", [])[:10])}
+SEARCH RESULTS:
+{snippets_text}
 
-Generate comprehensive CBSE Class 12 chapter content including:
-1. Key subtopics with descriptions and key points
-2. Quick revision notes
-3. Memory aids/mnemonics
+Generate comprehensive CBSE Class 12 chapter content.
 
-Respond with JSON containing:
-- chapter_name: the chapter name
-- subject: the subject
-- subtopics: array of {{title, description, key_points (array)}}
-- quick_notes: array of strings
-- mnemonics: array of strings (memory aids)
-- confidence: number between 0-1
-- warnings: array of strings (or empty array)"""
+Respond with JSON:
+{{
+  "chapter_name": "{request.chapter_name}",
+  "subject": "{request.subject}",
+  "subtopics": [{{"title": "...", "description": "...", "key_points": ["..."]}}],
+  "quick_notes": ["..."],
+  "mnemonics": ["..."],
+  "confidence": 0.85,
+  "warnings": []
+}}"""
         
-        layer1_result = await call_llm(layer1_prompt, CHAPTER_LAYER1_SYSTEM_PROMPT, 0.3)
+        layer1_result = await llm_service.generate_json(
+            layer1_prompt, CHAPTER_LAYER1_SYSTEM_PROMPT, 0.3, 4000
+        )
         
-        # Step 3: Layer 4 - Generate important questions
-        subtopics_summary = "\n".join([
-            f"- {st.get('title', '')}: {st.get('description', '')[:100]}"
+        # Step 3: Generate important questions
+        subtopics_text = "\n".join([
+            f"- {st.get('title', '')}"
             for st in layer1_result.get("subtopics", [])[:5]
         ])
         
-        layer4_prompt = f"""SUBJECT: {request.subject}
-CHAPTER: {request.chapter_name}
+        layer4_prompt = f"""CHAPTER: {request.chapter_name}
+SUBTOPICS:
+{subtopics_text}
 
-CHAPTER CONTENT:
-{subtopics_summary}
+Generate 4-6 important board exam questions with answers.
 
-Generate 4-6 important board exam questions with detailed answers.
-Include short (2-3 marks) and long (4-6 marks) questions.
-
-Respond with JSON containing:
-- important_questions: array of {{question, answer, marks (number), type ("short" or "long")}}
-- question_authenticity_score: number 0-100"""
+Respond with JSON:
+{{
+  "important_questions": [{{"question": "...", "answer": "...", "marks": 4, "type": "short"}}],
+  "question_authenticity_score": 85
+}}"""
         
-        layer4_result = await call_llm(layer4_prompt, CHAPTER_LAYER4_SYSTEM_PROMPT, 0.4)
+        layer4_result = await llm_service.generate_json(
+            layer4_prompt, CHAPTER_LAYER4_SYSTEM_PROMPT, 0.4, 4000
+        )
         
         processing_time = int((time.time() - start_time) * 1000)
         
         # Build response
         subtopics = []
-        for st in layer1_result.get("subtopics", []):
+        for st in layer1_result.get("subtopics", [])[:8]:
             subtopics.append(SubtopicResponse(
                 title=st.get("title", "Topic"),
                 description=st.get("description", ""),
@@ -604,14 +501,7 @@ Respond with JSON containing:
                 type=q_type,
             ))
         
-        board_questions = [
-            BoardQuestionResponse(
-                year="Various",
-                question=f"Important question from {request.chapter_name}",
-                marks=4,
-            )
-        ]
-        
+        # Build sources from search results
         sources = []
         for s in search_results.get("sources", [])[:8]:
             sources.append(SourceInfo(
@@ -626,9 +516,12 @@ Respond with JSON containing:
                 SourceInfo(title="NCERT Textbooks", link="https://ncert.nic.in", source="NCERT"),
             ]
         
-        warnings = layer1_result.get("warnings", [])
+        # Build warnings
+        warnings_list = []
         if not serpapi_key:
-            warnings.append("Web search not available. Add SerpAPI key in Settings for better results.")
+            warnings_list.append("Web search not available. Add SerpAPI key in Settings for better results.")
+        if layer1_result.get("warnings"):
+            warnings_list.extend(layer1_result.get("warnings", []))
         
         return ChapterResearchResponse(
             chapter_name=request.chapter_name,
@@ -643,12 +536,18 @@ Respond with JSON containing:
             important_questions=important_questions if important_questions else [
                 ImportantQuestionResponse(
                     question=f"Explain the key concepts of {request.chapter_name}",
-                    answer="Please refer to the NCERT textbook for complete information.",
+                    answer="Please refer to NCERT textbook for detailed information.",
                     marks=4,
                     type="short",
                 )
             ],
-            board_questions=board_questions,
+            board_questions=[
+                BoardQuestionResponse(
+                    year="Various",
+                    question=f"Important question from {request.chapter_name}",
+                    marks=4,
+                )
+            ],
             quick_notes=layer1_result.get("quick_notes", ["Review NCERT textbook"]),
             mnemonics=layer1_result.get("mnemonics") if layer1_result.get("mnemonics") else None,
             sources=sources,
@@ -659,13 +558,14 @@ Respond with JSON containing:
                 completeness=85.0,
                 question_authenticity=layer4_result.get("question_authenticity_score", 80.0),
             ),
-            warnings=warnings if warnings else None,
+            warnings=warnings_list if warnings_list else None,
             processing_time_ms=processing_time,
             generated_at=datetime.utcnow().isoformat(),
         )
         
     except Exception as e:
         # If AI generation fails, fall back to demo data
+        print(f"AI generation failed: {e}")
         processing_time = int((time.time() - start_time) * 1000)
         demo_response = get_demo_response(request.subject, request.chapter_name, processing_time)
         demo_response.warnings = [f"AI generation failed: {str(e)[:100]}. Showing demo data."]

@@ -86,7 +86,7 @@ class LLMService:
         
         async with httpx.AsyncClient(timeout=settings.max_llm_timeout) as client:
             response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}",
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={self.gemini_api_key}",
                 headers={"Content-Type": "application/json"},
                 json={
                     "contents": [{"parts": [{"text": full_prompt}]}],
@@ -133,7 +133,7 @@ class LLMService:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "llama-3.1-70b-versatile",
+                    "model": "llama-3.3-70b-versatile",
                     "messages": messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
