@@ -1,7 +1,6 @@
 import { TextareaHTMLAttributes, forwardRef } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { motion } from 'framer-motion';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,10 +20,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             {label}
           </label>
         )}
-        <motion.textarea
+        <textarea
           ref={ref}
-          whileFocus={{ scale: 1.005 }}
-          transition={{ duration: 0.2 }}
           className={cn(
             'w-full px-5 py-4 rounded-apple',
             'bg-apple-gray-50 dark:bg-apple-gray-800/50',
@@ -40,13 +37,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           {...props}
         />
         {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2 text-sm text-apple-red ml-1"
-          >
+          <p className="mt-2 text-sm text-apple-red ml-1">
             {error}
-          </motion.p>
+          </p>
         )}
       </div>
     );

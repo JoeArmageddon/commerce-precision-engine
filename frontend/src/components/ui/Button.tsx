@@ -2,7 +2,6 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,10 +33,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <motion.button
+      <button
         ref={ref}
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         className={cn(
           baseStyles,
           variants[variant],
@@ -55,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
         )}
         {children}
-      </motion.button>
+      </button>
     );
   }
 );

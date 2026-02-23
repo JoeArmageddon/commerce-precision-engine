@@ -1,7 +1,6 @@
 import { InputHTMLAttributes, forwardRef } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { motion } from 'framer-motion';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,11 +21,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <motion.div
-          className="relative"
-          whileFocus={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="relative">
           {icon && (
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-apple-gray-400">
               {icon}
@@ -49,15 +44,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             )}
             {...props}
           />
-        </motion.div>
+        </div>
         {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-2 text-sm text-apple-red ml-1"
-          >
+          <p className="mt-2 text-sm text-apple-red ml-1">
             {error}
-          </motion.p>
+          </p>
         )}
       </div>
     );
